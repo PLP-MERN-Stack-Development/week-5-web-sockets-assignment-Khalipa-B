@@ -1,39 +1,48 @@
-import React, { useState } from "react";
-import { io } from "socket.io-client";
-import ChatUI from "./components/ChatUI";
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import Chat from './components/Chat.jsx';
 
-const socket = io("http://localhost:5000");
+const socket = io('http://localhost:5000');
 
 export default function App() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [joined, setJoined] = useState(false);
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const handleJoin = () => {
     if (username.trim()) {
-      socket.emit("join", username);
-      setJoined(true);
+      socket.emit('set_username', username, () => setJoined(true));
     }
   };
 
-  return joined ? (
-    <ChatUI socket={socket} username={username} />
-  ) : (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <input
-          type="text"
-          placeholder="Enter username..."
-          className="border p-2 rounded mb-4 w-full"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <button
-          onClick={handleJoin}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Join Chat
-        </button>
-      </div>
+  return (
+    <div className="h-screen bg-slate-50 flex items-center justify-center">
+      {!joined ? (
+        <div className="bg-white p-6 rounded shadow w-96">
+          <h2 className="text-2xl mb-4 font-bold">Join Chatterbox</h2>
+          <input
+            type="text"
+            placeholder="Enter username"
+            className="w-full p-2 border rounded mb-4"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
+          />
+          <button
+            className="w-full bg-indigo-600 text-white py-2 rounded"
+            onClick={handleJoin}
+          >
+            Join
+          </button>
+        </div>
+      ) : (
+        <Chat socket={socket} username={username} />
+      )}
     </div>
   );
 }
