@@ -11,7 +11,7 @@ app.use(express.json());
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: '*' },
+  cors: { origin: '*' }
 });
 
 const onlineUsers = {};
@@ -25,13 +25,13 @@ io.on('connection', (socket) => {
     onlineUsers[socket.id] = username;
     socketsByUsername[username] = socket.id;
     io.emit('online_users', Object.values(onlineUsers));
-    ack({ ok: true });
+    if (ack) ack({ ok: true });
   });
 
   socket.on('join_room', (room, ack) => {
     socket.join(room);
     if (!messages[room]) messages[room] = [];
-    ack({ lastMessages: messages[room].slice(-50) });
+    if (ack) ack({ lastMessages: messages[room].slice(-50) });
   });
 
   socket.on('send_message', (payload, ack) => {
@@ -49,12 +49,10 @@ io.on('connection', (socket) => {
     messages[msg.room].push(msg);
 
     if (msg.to) {
-      // Private message to sender and recipient only
       const toSocketId = socketsByUsername[msg.to];
       if (toSocketId) io.to(toSocketId).emit('private_message', msg);
       socket.emit('private_message', msg);
     } else {
-      // Broadcast to room
       io.to(msg.room).emit('new_message', msg);
     }
 
