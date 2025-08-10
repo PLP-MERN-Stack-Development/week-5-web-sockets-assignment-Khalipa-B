@@ -55,3 +55,21 @@ export function socketHandler(io) {
     });
   });
 }
+
+const readReceipts = new Map(); // Map<messageId, Set<username>>
+
+// Inside connection handler
+socket.on('message_read', (messageId) => {
+  if (!readReceipts.has(messageId)) {
+    readReceipts.set(messageId, new Set());
+  }
+  readReceipts.get(messageId).add(onlineUsers.get(socket.id));
+
+  // Notify sender about the read receipt
+  const senderSocketId = [...onlineUsers.entries()]
+    .find(([id, user]) => user === messages.find(m => m.id === messageId)?.from)?.[0];
+
+  if (senderSocketId) {
+    io.to(senderSocketId).emit('message_read_update', { messageId, reader: onlineUsers.get(socket.id) });
+  }
+});
