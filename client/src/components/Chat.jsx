@@ -13,23 +13,25 @@ export default function Chat({ socket, username }) {
       setMessages(lastMessages);
     });
 
-    socket.on('online_users', users => setOnlineUsers(users.filter(u => u !== username)));
+    socket.on('online_users', (users) =>
+      setOnlineUsers(users.filter((u) => u !== username))
+    );
 
-    socket.on('new_message', msg => {
-      setMessages(prev => [...prev, msg]);
+    socket.on('new_message', (msg) => {
+      setMessages((prev) => [...prev, msg]);
     });
 
-    socket.on('private_message', msg => {
-      setMessages(prev => [...prev, msg]);
+    socket.on('private_message', (msg) => {
+      setMessages((prev) => [...prev, msg]);
       if (Notification.permission === 'granted') {
         new Notification(`Private message from ${msg.from}`);
       }
     });
 
     socket.on('typing', ({ from }) => {
-      setTypingUsers(prev => ({ ...prev, [from]: true }));
+      setTypingUsers((prev) => ({ ...prev, [from]: true }));
       setTimeout(() => {
-        setTypingUsers(prev => {
+        setTypingUsers((prev) => {
           const copy = { ...prev };
           delete copy[from];
           return copy;
@@ -60,7 +62,7 @@ export default function Chat({ socket, username }) {
     };
 
     socket.emit('send_message', payload);
-    setMessages(prev => [...prev, { ...payload, timestamp: Date.now() }]);
+    setMessages((prev) => [...prev, { ...payload, timestamp: Date.now() }]);
     setInput('');
   };
 
@@ -73,7 +75,7 @@ export default function Chat({ socket, username }) {
       <aside className="w-64 border-r p-4 bg-gray-50 flex flex-col">
         <h2 className="font-bold mb-4">Online Users</h2>
         <ul className="flex-grow overflow-auto">
-          {onlineUsers.map(user => (
+          {onlineUsers.map((user) => (
             <li
               key={user}
               className={`p-2 cursor-pointer rounded ${
@@ -105,20 +107,24 @@ export default function Chat({ socket, username }) {
 
         <section className="flex-grow p-4 overflow-auto bg-gray-50">
           {messages
-            .filter(msg =>
+            .filter((msg) =>
               privateUser
-                ? (msg.from === username && msg.to === privateUser) || (msg.from === privateUser && msg.to === username)
+                ? (msg.from === username && msg.to === privateUser) ||
+                  (msg.from === privateUser && msg.to === username)
                 : !msg.to
             )
             .map((msg, i) => (
               <div
                 key={i}
                 className={`mb-2 max-w-xs p-2 rounded ${
-                  msg.from === username ? 'bg-indigo-600 text-white ml-auto' : 'bg-white border'
+                  msg.from === username
+                    ? 'bg-indigo-600 text-white ml-auto'
+                    : 'bg-white border'
                 }`}
               >
                 <div className="text-xs opacity-70">
-                  <strong>{msg.from}</strong> <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                  <strong>{msg.from}</strong>{' '}
+                  <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
                 </div>
                 <div>{msg.text}</div>
               </div>
@@ -131,25 +137,3 @@ export default function Chat({ socket, username }) {
             type="text"
             placeholder="Type your message..."
             className="flex-grow border p-2 rounded"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') sendMessage();
-              else startTyping();
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
-          >
-            Send
-          </button>
-        </footer>
-
-        <div className="p-2 text-sm text-gray-600 italic">
-          {Object.keys(typingUsers).length > 0 && `${Object.keys(typingUsers).join(', ')} typing...`}
-        </div>
-      </main>
-    </div>
-  );
-}
