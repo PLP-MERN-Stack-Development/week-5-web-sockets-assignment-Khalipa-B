@@ -17,3 +17,35 @@ Chatterbox is a real-time chat application demonstrating bidirectional communica
 cd server
 npm install
 npm run dev
+
+Client
+bash
+Copy
+Edit
+cd client
+npm install
+npm run dev
+Open your browser at the URL shown by Vite (typically http://localhost:5173).
+
+Features Implemented
+Real-time global chat messaging
+
+User presence (online users list)
+
+Typing indicators
+
+Private messaging
+
+Responsive React UI with Tailwind CSS
+
+
+
+Screenshots / GIFs
+Add screenshots here
+
+Author
+Khalipa
+
+
+---
+
